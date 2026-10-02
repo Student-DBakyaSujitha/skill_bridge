@@ -1,5 +1,8 @@
+
 .venv/
 venv/
 __pycache__/
 *.pyc
 .env
+instance/secret_key
+instance/skillbridge.db
