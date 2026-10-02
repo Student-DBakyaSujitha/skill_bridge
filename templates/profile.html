@@ -1,0 +1,34 @@
+{% from "_fields.html" import inp, sel with context %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="{{ csrf_token() }}">
+<title>My Profile | SkillBridge</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+  {% include "_nav.html" %}
+  <main class="shell">
+    <header class="page-heading"><div><p class="eyebrow">Account</p><h1>My Profile</h1></div><p class="welcome">Welcome, {{ user.name }}</p></header>
+    <section class="panel profile-panel">
+      <h2>Profile and career preferences</h2>
+      {% for m in get_flashed_messages() %}<p class="ok" role="status">{{ m }}</p>{% endfor %}
+      <form method="post" novalidate>
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label>Email</label><p class="static">{{ user.email }}</p>
+        {{ inp("name", "Full name", "text", "name") }}
+        <div class="two">
+          <div>{{ sel("department", "Department", departments) }}</div>
+          <div>{{ sel("year", "Year of study", years) }}</div>
+        </div>
+        {{ sel("career_goal", "Career goal", careers) }}
+        <button type="submit">Save changes</button>
+      </form>
+    </section>
+  </main>
+</div>
+</body>
+</html>

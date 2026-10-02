@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="{{ csrf_token() }}">
+<title>{{ page|title }} | SkillBridge</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+  {% set current_page = page %}
+  {% include "_nav.html" %}
+  <main class="shell">
+    <header class="page-heading">
+      <div><p class="eyebrow">Your learning workspace</p><h1>{{ page|replace("_", " ")|title }}</h1></div>
+      <p class="welcome">Welcome, {{ user.name }}</p>
+    </header>
+    {% for notice in get_flashed_messages() %}<p class="notice" role="status">{{ notice }}</p>{% endfor %}
+    <p id="action-message" class="notice" role="status" hidden></p>
+    {% if page == "dashboard" %}
+      <section class="stat-grid" aria-label="Learning summary">
+        <article class="panel stat"><span>Career match</span><strong data-career-score>{{ analysis.score }}%</strong></article>
+        <article class="panel stat"><span>Roadmap complete</span><strong data-task-percent>{{ analysis.task_percent }}%</strong></article>
+        <article class="panel stat"><span>Tasks remaining</span><strong data-pending-count>{{ analysis.pending_count }}</strong></article>
+      </section>
+      <div class="grid">
+        <section class="panel">
+          <h2>My skills and skill gap</h2>
+          <form id="form">
+            <label for="career">Career you want</label>
+            <select id="career">{% for c in careers %}<option {% if c == analysis.career %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+            <label for="skills">Skills you have</label>
+            <textarea id="skills" rows="5" placeholder="e.g. HTML, CSS, JavaScript and Git">{{ user.skills }}</textarea>
+            <div class="prog" aria-label="Analysis loading"><i id="prog"></i></div>
+            <button type="submit">Analyze my skills</button>
+            <p id="error" role="alert" hidden></p>
+          </form>
+          <h3>Career skills</h3>
+          <div class="chips" id="chips">
+            {% for skill in analysis.skills %}<span class="chip {{ 'have' if skill.have else 'gap' }}">{{ skill.name }}</span>{% endfor %}
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Personalized learning roadmap</h2>
+          <p class="big" id="headline">Your journey to {{ analysis.career }}: {{ analysis.score }}% there</p>
+          <div class="flow">
+            <div class="hexw"><div class="hex cur"><small>Skills matched</small><strong id="n-have">{{ analysis.skills|selectattr("have")|list|length }} of {{ analysis.skills|length }}</strong></div></div>
+            <div class="card gap"><h3>Next skills</h3><ul id="n-gap">{% for skill in analysis.next_up %}<li>{{ skill }}</li>{% else %}<li>No skill gaps found</li>{% endfor %}</ul></div>
+            <div class="card path"><h3>Learning levels</h3><ul id="n-path">{% for phase in analysis.roadmap %}<li>{{ phase.level_name }}: {{ phase.steps|length }} tasks</li>{% else %}<li>No pending tasks</li>{% endfor %}</ul></div>
+            <div class="hexw"><div class="hex tgt"><small>Target role</small><strong id="n-tgt">{{ analysis.career }}</strong></div></div>
+          </div>
+          <p><a class="text-link" href="{{ url_for('learning_roadmap') }}">Open full roadmap →</a></p>
+        </section>
+        <aside class="side">
+          <section class="panel"><h2>Skill match by level</h2>
+            {% for level in (1, 2, 3) %}
+              {% set items = analysis.skills|selectattr("level", "equalto", level)|list %}
+              {% if items %}
+                {% set count = items|selectattr("have")|list|length %}
+                <div class="bar"><div><span>{{ {1:"Beginner", 2:"Intermediate", 3:"Advanced"}[level] }}</span><span>{{ (100 * count / items|length)|round|int }}%</span></div><i><b style="width:{{ (100 * count / items|length)|round|int }}%"></b></i></div>
+              {% endif %}
+            {% endfor %}
+          </section>
+          <section class="panel"><h2>Project recommendations</h2>
+            {% for project in analysis.projects[:2] %}<article class="proj"><h3>{{ project.title }}</h3><p>{{ project.desc }}</p></article>{% else %}<p class="muted">Add or update your skills to get project ideas.</p>{% endfor %}
+            <a class="text-link" href="{{ url_for('project_recommendations') }}">See all projects →</a>
+          </section>
+        </aside>
+      </div>
+    {% elif page == "skills" %}
+      <section class="panel">
+        <h2>Skills for {{ analysis.career }}</h2>
+        <p class="muted">Your listed skills are matched automatically. Save any skill to revisit it later.</p>
+        <div class="item-list">
+          {% for skill in analysis.skills %}
+          <article class="item-card">
+            <div><span class="chip {{ 'have' if skill.have else 'gap' }}">{{ "Have this skill" if skill.have else "Learning gap" }}</span>
+              <h3>{{ skill.name|title }}</h3><p>{{ skill.tip }}</p></div>
+            <button class="ghost" type="button" data-save-toggle data-type="skill" data-key="{{ skill.name }}" data-saved="{{ 'true' if skill.name in saved_items|selectattr('item_type', 'equalto', 'skill')|map(attribute='item_key')|list else 'false' }}">{{ "Remove saved" if skill.name in saved_items|selectattr('item_type', 'equalto', 'skill')|map(attribute='item_key')|list else "Save skill" }}</button>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% elif page == "analysis" %}
+      <section class="panel">
+        <h2>Skill gap analysis for {{ analysis.career }}</h2>
+        <p class="big">{{ analysis.score }}% skill match</p>
+        <div class="progress-track"><span style="width:{{ analysis.score }}%"></span></div>
+        <div class="item-list">
+          {% for skill in analysis.skills %}
+          <article class="item-card"><div><span class="chip {{ 'have' if skill.have else 'gap' }}">{{ "Matched" if skill.have else "Gap" }} · {{ {1:"Beginner", 2:"Intermediate", 3:"Advanced"}[skill.level] }}</span><h3>{{ skill.name|title }}</h3><p>{{ skill.tip }}</p></div></article>
+          {% endfor %}
+        </div>
+      </section>
+    {% elif page == "roadmap" %}
+      <section class="panel">
+        <h2>Your personalized roadmap: {{ analysis.career }}</h2>
+        <p class="muted">Complete a task to save your progress. Your dashboard and progress tracker update automatically.</p>
+        <div class="progress-summary"><strong><span data-completed-count>{{ analysis.completed_count }}</span> / {{ analysis.task_count }} tasks complete</strong><span data-task-percent>{{ analysis.task_percent }}%</span></div>
+        <div class="progress-track"><span data-task-progress style="width:{{ analysis.task_percent }}%"></span></div>
+        {% for phase in analysis.roadmap %}
+        <section class="roadmap-level">
+          <header><div><p class="eyebrow">{{ phase.level_name }}</p><h3>{{ phase.phase }}</h3></div></header>
+          {% for task in phase.steps %}
+          <article class="roadmap-task">
+            <label class="task-check"><input type="checkbox" data-roadmap-task data-career="{{ analysis.career }}" data-skill="{{ task.name }}" {% if task.completed %}checked{% endif %}><span><strong>{{ task.name|title }}</strong> <small>· {{ task.hours }}</small></span></label>
+            <p><b>Objective:</b> {{ task.objective }}</p><p><b>Practice:</b> {{ task.practice }}</p>
+            <p><b>Mini-project:</b> {{ task.mini_project }}</p>
+            <p><b>Resources:</b> {% for resource in task.resources %}<a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer">{{ resource.label }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+          </article>
+          {% endfor %}
+        </section>
+        {% else %}<p class="ok">No skill gaps remain. Try a portfolio project to keep building.</p>{% endfor %}
+      </section>
+    {% elif page == "projects" %}
+      <section class="panel"><h2>Recommended projects for {{ analysis.career }}</h2>
+        <div class="item-list">
+        {% for project in analysis.projects %}
+          <article class="item-card"><div><h3>{{ project.title }}</h3><p>{{ project.desc }}</p><p><b>Skills practiced:</b> {{ project.demonstrates|join(", ") }}</p></div>
+          <button class="ghost" type="button" data-save-toggle data-type="project" data-key="{{ project.title }}" data-saved="{{ 'true' if project.saved else 'false' }}">{{ "Remove saved" if project.saved else "Save project" }}</button></article>
+        {% else %}<p class="ok">Your current skills cover this career's listed requirements. Build an advanced portfolio project.</p>{% endfor %}
+        </div>
+      </section>
+    {% elif page == "resources" %}
+      <section class="panel"><h2>Learning resources</h2><p class="muted">Curated starting points for the skills in your {{ analysis.career }} roadmap.</p>
+        <div class="item-list">
+        {% for group in analysis.resources %}
+          <article class="item-card"><div><h3>{{ group.skill|title }}</h3><ul class="resource-list">{% for label, url in group.links %}<li><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ label }}</a></li>{% endfor %}</ul></div></article>
+        {% endfor %}
+        </div>
+      </section>
+    {% elif page == "progress" %}
+      <section class="panel"><h2>Progress tracker</h2><p class="muted">Progress is saved to your student account and is available after you log back in.</p>
+        <div class="progress-summary"><strong><span data-completed-count>{{ analysis.completed_count }}</span> of {{ analysis.task_count }} roadmap tasks complete</strong><span data-task-percent>{{ analysis.task_percent }}%</span></div>
+        <div class="progress-track"><span data-task-progress style="width:{{ analysis.task_percent }}%"></span></div>
+        <h3>Pending tasks ({{ analysis.pending_count }})</h3>
+        {% for phase in analysis.roadmap %}{% for task in phase.steps %}{% if not task.completed %}<p class="tracker-row"><span>{{ phase.level_name }} · {{ task.name|title }}</span><a href="{{ url_for('learning_roadmap') }}">Open task</a></p>{% endif %}{% endfor %}{% endfor %}
+        <h3>Completed tasks ({{ analysis.completed_count }})</h3>
+        {% for phase in analysis.roadmap %}{% for task in phase.steps %}{% if task.completed %}<p class="tracker-row done"><span>{{ phase.level_name }} · {{ task.name|title }}</span><span>Complete</span></p>{% endif %}{% endfor %}{% endfor %}
+      </section>
+    {% elif page == "saved" %}
+      <section class="panel"><h2>Saved skills and projects</h2><p class="muted">Your saved items are private to your account.</p>
+        <div class="item-list" id="saved-list">
+        {% for item in saved_items %}
+          <article class="item-card" data-saved-card data-type="{{ item.item_type }}" data-key="{{ item.item_key }}"><div><span class="eyebrow">{{ item.item_type|title }}</span><h3>{{ item.title|title if item.item_type == "skill" else item.title }}</h3><p>{{ item.details }}</p></div><button class="ghost" type="button" data-save-toggle data-type="{{ item.item_type }}" data-key="{{ item.item_key }}" data-saved="true">Remove saved</button></article>
+        {% else %}<p class="muted" id="saved-empty">No saved items yet. Save skills or projects to find them here.</p>{% endfor %}
+        </div>
+      </section>
+    {% elif page == "settings" %}
+      <section class="panel narrow-panel"><h2>Learning preferences</h2><p class="muted">Choose a career goal to personalize your skill analysis, roadmap, resources, and recommendations.</p>
+        <form id="settings-form"><label for="settings-career">Career goal</label><select id="settings-career">{% for career in careers %}<option {% if career == analysis.career %}selected{% endif %}>{{ career }}</option>{% endfor %}</select><button type="submit">Save preferences</button></form>
+      </section>
+    {% endif %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

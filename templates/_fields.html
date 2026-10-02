@@ -1,0 +1,14 @@
+{% macro inp(name, label, type="text", ac="") %}
+<label for="{{ name }}">{{ label }}</label>
+<input id="{{ name }}" name="{{ name }}" type="{{ type }}" autocomplete="{{ ac }}" required{% if type != "password" %} value="{{ v.get(name, '') }}"{% else %} minlength="8"{% endif %}{% if e.get(name) %} aria-invalid="true" aria-describedby="{{ name }}-e"{% endif %}>
+{% if e.get(name) %}<p class="err" id="{{ name }}-e">{{ e[name] }}</p>{% endif %}
+{% endmacro %}
+
+{% macro sel(name, label, opts) %}
+<label for="{{ name }}">{{ label }}</label>
+<select id="{{ name }}" name="{{ name }}" required{% if e.get(name) %} aria-invalid="true" aria-describedby="{{ name }}-e"{% endif %}>
+  <option value="" disabled {% if not v.get(name) %}selected{% endif %}>Choose one</option>
+  {% for o in opts %}<option {% if v.get(name)|string == o|string %}selected{% endif %}>{{ o }}</option>{% endfor %}
+</select>
+{% if e.get(name) %}<p class="err" id="{{ name }}-e">{{ e[name] }}</p>{% endif %}
+{% endmacro %}

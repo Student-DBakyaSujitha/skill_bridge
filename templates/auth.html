@@ -1,0 +1,52 @@
+{% from "_fields.html" import inp, sel with context %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="{{ csrf_token() }}">
+<title>{{ "Create your account" if mode == "register" else "Log in" }} | SkillBridge</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="authpage">
+<div class="auth">
+  <aside class="brand">
+    <b class="logo">S</b>
+    <h1><a href="{{ url_for('home') }}">SkillBridge</a></h1>
+    <p class="big">Learn what you're missing.</p>
+    <ul>
+      <li>Compare your skills with the career you want</li>
+      <li>Get a roadmap ordered from foundations to job-ready</li>
+      <li>Pick portfolio projects that prove each new skill</li>
+    </ul>
+  </aside>
+  <main class="card-auth">
+    <div class="tabs" role="tablist">
+      <a href="{{ url_for('login') }}" {% if mode == "login" %}aria-current="page"{% endif %}>Log in</a>
+      <a href="{{ url_for('register') }}" {% if mode == "register" %}aria-current="page"{% endif %}>Create account</a>
+    </div>
+    <form method="post" novalidate>
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      {% if e.form %}<p class="alert" role="alert">{{ e.form }}</p>{% endif %}
+      {% if mode == "register" %}
+        {{ inp("name", "Full name", "text", "name") }}
+        {{ inp("email", "Email", "email", "email") }}
+        {{ inp("password", "Password", "password", "new-password") }}
+        {% if not e.password %}<p class="hint">At least 8 characters, with a letter and a number.</p>{% endif %}
+        {{ inp("confirm", "Confirm password", "password", "new-password") }}
+        <div class="two">
+          <div>{{ sel("department", "Department", departments) }}</div>
+          <div>{{ sel("year", "Year of study", years) }}</div>
+        </div>
+        {{ sel("career_goal", "Career goal", careers) }}
+        <button type="submit">Create account</button>
+      {% else %}
+        {{ inp("email", "Email", "email", "email") }}
+        {{ inp("password", "Password", "password", "current-password") }}
+        <button type="submit">Log in</button>
+      {% endif %}
+    </form>
+  </main>
+</div>
+</body>
+</html>

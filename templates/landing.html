@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillBridge: Learn what you're missing</title>
+<meta name="description" content="Compare your skills with the career you want, get a learning roadmap, and find portfolio projects that prove each new skill.">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="site">
+<header class="wrap nav">
+  <a class="brandlink" href="{{ url_for('home') }}"><b class="logo">S</b>SkillBridge</a>
+  <nav>
+    <a href="#how">How it works</a><a href="#careers">Careers</a>
+    {% if user %}<a class="btn" href="{{ url_for('dashboard') }}">Open dashboard</a>
+    {% else %}<a href="{{ url_for('login') }}">Log in</a><a class="btn" href="{{ url_for('register') }}">Get started</a>{% endif %}
+  </nav>
+</header>
+<main>
+  <section class="wrap hero">
+    <div>
+      <h1>Learn what you're missing.</h1>
+      <p class="lead">Pick the career you want and list the skills you already have. SkillBridge shows the gap, puts what to learn in order, and suggests projects that prove each new skill.</p>
+      <p class="actions">
+        {% if user %}<a class="btn" href="{{ url_for('dashboard') }}">Open your dashboard</a>
+        {% else %}<a class="btn" href="{{ url_for('register') }}">Create your account</a><a class="btn alt" href="{{ url_for('login') }}">Log in</a>{% endif %}
+      </p>
+    </div>
+    <div class="panel sample">
+      <h2>Sample result: Web Developer</h2>
+      <p class="big">{{ score }}% of the way there</p>
+      <div class="chips">{% for c in chips %}<span class="chip {{ 'have' if c.have else 'gap' }}">{{ c.name }}</span>{% endfor %}</div>
+      <p class="legend"><span class="k have"></span>You have it <span class="k gap"></span>Still to learn</p>
+      <p class="hint">Example for a student who knows HTML, CSS, JavaScript and Git.</p>
+    </div>
+  </section>
+
+  <section id="how" class="wrap">
+    <h2 class="sec">How it works</h2>
+    <ol class="steps">
+      <li><h3>Tell us what you know</h3><p>Write your skills in plain language. Typos and tool names, like Postgres or Flask, are understood.</p></li>
+      <li><h3>See your gap</h3><p>Every skill the career needs is marked as covered or missing, with a match score for each level.</p></li>
+      <li><h3>Follow the roadmap</h3><p>Missing skills are ordered from foundations to job-ready, each with a practice task and a project that proves it.</p></li>
+    </ol>
+  </section>
+
+  <section id="careers" class="wrap">
+    <h2 class="sec">Careers you can plan for</h2>
+    <div class="cards">
+      {% for c in cards %}
+      <article class="panel"><h3>{{ c.name }}</h3>
+        <p class="hint">{{ c.count }} skills checked, {{ c.projects }} project ideas.</p>
+        <div class="chips">{% for s in c.top %}<span class="chip plain">{{ s }}</span>{% endfor %}</div>
+      </article>{% endfor %}
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="panel cta"><h2>Ready to see your gap?</h2>
+      <p>Your account saves your skills and career goal, and only you can see them.</p>
+      <a class="btn" href="{{ url_for('dashboard' if user else 'register') }}">{{ 'Open your dashboard' if user else 'Create your account' }}</a></div>
+  </section>
+</main>
+<footer class="wrap foot">SkillBridge helps students plan the skills they need next.</footer>
+</body>
+</html>

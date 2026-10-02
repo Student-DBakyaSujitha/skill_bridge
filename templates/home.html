@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillBridge: Learn what you're missing</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="home">
+  <header class="navbar">
+    <b class="logo">S</b><strong>SkillBridge</strong>
+    <nav><a href="{{ url_for('login') }}">Log in</a><a class="btn" href="{{ url_for('register') }}">Create account</a></nav>
+  </header>
+  <section class="hero">
+    <div>
+      <h1>Find the skills between you and the career you want.</h1>
+      <p class="lead">Tell SkillBridge what you already know. It shows what a {{ careers[0] }}, {{ careers[1] }} or {{ careers[2] }} needs next, puts the gaps in learning order, and suggests projects that prove each new skill.</p>
+      <p><a class="btn" href="{{ url_for('register') }}">Start free</a> <a class="btn alt" href="{{ url_for('login') }}">I have an account</a></p>
+    </div>
+    <div class="panel">
+      <h2>Example: Web Developer</h2>
+      <div class="chips"><span class="chip have">html</span><span class="chip have">css</span><span class="chip have">javascript</span><span class="chip gap">responsive design</span><span class="chip gap">rest apis</span><span class="chip gap">react</span><span class="chip gap">deployment</span></div>
+      <p class="legend"><span class="k have"></span>You have it <span class="k gap"></span>Still to learn</p>
+    </div>
+  </section>
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><h3>List your skills</h3><p>Type them in plain words. Typos and tool names are understood.</p></li>
+    <li><h3>See your gap</h3><p>Compare against the career you picked, from foundations to advanced.</p></li>
+    <li><h3>Follow the roadmap</h3><p>Learn in order and build the projects that show employers what you can do.</p></li>
+  </ol>
+  <h2>Careers covered</h2>
+  <div class="chips">{% for c in careers %}<span class="chip have">{{ c }}</span>{% endfor %}</div>
+</div>
+</body>
+</html>

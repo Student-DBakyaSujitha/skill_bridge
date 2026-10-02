@@ -1,0 +1,25 @@
+<aside class="sidebar" aria-label="Main navigation">
+  <a class="sidebar-brand" href="{{ url_for('dashboard') }}"><b class="logo">S</b><strong>SkillBridge</strong></a>
+  <p class="sidebar-student">{{ user.name }}</p>
+  <nav class="nav-links">
+    {% set links = [
+      ("dashboard", "Dashboard", "dashboard"),
+      ("profile", "My Profile", "profile"),
+      ("skills", "My Skills", "my_skills"),
+      ("analysis", "Skill Gap Analysis", "skill_analysis"),
+      ("roadmap", "Learning Roadmap", "learning_roadmap"),
+      ("projects", "Project Recommendations", "project_recommendations"),
+      ("resources", "Learning Resources", "learning_resources"),
+      ("progress", "Progress Tracker", "progress_tracker"),
+      ("saved", "Saved Skills and Projects", "saved_items_page"),
+      ("settings", "Settings", "settings")
+    ] %}
+    {% for key, label, endpoint in links %}
+      <a href="{{ url_for(endpoint) }}" {% if current_page == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <form method="post" action="{{ url_for('logout') }}" class="sidebar-logout">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <button class="ghost" type="submit">Logout</button>
+  </form>
+</aside>
