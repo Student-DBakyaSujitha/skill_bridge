@@ -6,3 +6,4 @@ __pycache__/
 .env
 instance/secret_key
 instance/skillbridge.db
+target/
