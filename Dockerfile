@@ -13,6 +13,9 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
+COPY templates ./templates
+COPY static ./static
+
 EXPOSE 10000
 
 CMD ["sh", "-c", "java -jar app.jar --server.port=${PORT:-10000}"]
